@@ -1,9 +1,9 @@
-# Chip-8
-a simple Chip-8 emulator/interpreter implementation in C using SDL3.
-supports inputs, audio and display.
+# CHIP-8
+A simple CHIP-8 emulator/interpreter in C using SDL3.
+Supports keyboard input, audio, and display.
 
 # Quirks profile
-this is the result from [Timendus's Quirks Test](https://github.com/Timendus/chip8-test-suite/raw/main/bin/5-quirks.ch8)
+Below is the result from [Timendus's Quirks Test](https://github.com/Timendus/chip8-test-suite/raw/main/bin/5-quirks.ch8)
 
 | Feature    | Enabled |
 |------------|---------|
@@ -26,6 +26,11 @@ Z  X  C  V  ->  A  0  B  F
 # Building
 ```bash
 gcc main.c vm.c -lSDL3 -o chip8
+```
+
+# Usage
+```bash
+./chip8 /path/to/rom.ch8
 ```
 
 # Acknowledgements
