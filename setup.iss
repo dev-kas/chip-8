@@ -6,9 +6,10 @@ AppPublisher=KAS Software
 DefaultDirName={autopf}\KAS Software\chip8
 UninstallFilesDir={app}
 PrivilegesRequired=admin
-OutputBaseFilename=chip8-setup
+OutputBaseFilename=chip8-windows-x86_64-setup
 Compression=lzma2
 SolidCompression=yes
+ArchitecturesInstallIn64BitMode=x64
 
 [Files]
 Source: "chip8.exe"; DestDir: "{app}"; Flags: ignoreversion
