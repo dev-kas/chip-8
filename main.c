@@ -128,7 +128,19 @@ static void handle_input(struct CPU *cpu, bool *running) {
   }
 }
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 int main(int argc, char *argv[]) {
+#ifdef _WIN32
+  if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
+  }
+#endif
+
   if (argc < 2) {
     printf("usage: %s <path_to_rom>\n", argv[0]);
     return 1;
