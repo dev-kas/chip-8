@@ -37,6 +37,8 @@ int cpu_load_rom(struct CPU *cpu, const char *filename) {
 
 void cpu_tick(struct CPU *cpu) {
   // fetch
+  if (cpu->PC >= 4095)
+    return;
   uint16_t opcode = (cpu->memory[cpu->PC] << 8) | cpu->memory[cpu->PC + 1];
   cpu->PC += 2;
 
@@ -54,15 +56,21 @@ void cpu_tick(struct CPU *cpu) {
       memset(cpu->display, 0, sizeof(cpu->display));
       cpu->_rerender_window = true;
     }
-    if (nn == 0xEE)
+
+    if (nn == 0xEE) {
+      if (cpu->SP == 0)
+        break; // stack underflow guard
       cpu->PC = cpu->stack[--cpu->SP];
+    }
     break;
   case 0x1000:
     cpu->PC = nnn;
     break;
   case 0x2000:
-    cpu->stack[cpu->SP++] = cpu->PC;
-    cpu->PC = nnn;
+    if (cpu->SP < 16) { // stack overflow guard
+      cpu->stack[cpu->SP++] = cpu->PC;
+      cpu->PC = nnn;
+    }
     break;
   case 0x3000:
     if (cpu->V[x] == nn)
@@ -165,7 +173,11 @@ void cpu_tick(struct CPU *cpu) {
       if (yp >= 32)
         break;
 
+      if (cpu->I + yl >= 4096)
+        break;
+
       uint8_t pixelByte = cpu->memory[cpu->I + yl];
+
       for (int xPixel = 0; xPixel < 8; xPixel++) {
         int xp = xc + xPixel;
         if (xp >= 64)
@@ -224,7 +236,7 @@ void cpu_tick(struct CPU *cpu) {
       break;
 
     case 0x1E:
-      cpu->I += cpu->V[x];
+      cpu->I = (cpu->I + cpu->V[x]) & 0xFFF;
       break;
 
     case 0x29: {
@@ -235,22 +247,23 @@ void cpu_tick(struct CPU *cpu) {
     }
 
     case 0x33: {
-      uint8_t vx = (opcode & 0x0F00) >> 8;
-      uint8_t value = cpu->V[vx];
+      if (cpu->I + 2 < 4096) {
+        uint8_t vx = (opcode & 0x0F00) >> 8;
+        uint8_t value = cpu->V[vx];
 
-      cpu->memory[cpu->I] = value / 100;
-      cpu->memory[cpu->I + 1] = (value / 10) % 10;
-      cpu->memory[cpu->I + 2] = value % 10;
+        cpu->memory[cpu->I] = value / 100;
+        cpu->memory[cpu->I + 1] = (value / 10) % 10;
+        cpu->memory[cpu->I + 2] = value % 10;
+      }
       break;
     }
 
     case 0x55:
-      for (int i = 0; i <= x; i++)
+      for (int i = 0; i <= x && cpu->I + i < 4096; i++)
         cpu->memory[cpu->I + i] = cpu->V[i];
       break;
-
     case 0x65:
-      for (int i = 0; i <= x; i++)
+      for (int i = 0; i <= x && cpu->I + i < 4096; i++)
         cpu->V[i] = cpu->memory[cpu->I + i];
       break;
     }
